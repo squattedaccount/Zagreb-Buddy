@@ -1,7 +1,7 @@
 import json
-import os
 import asyncio
 import logging
+import os
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
@@ -10,7 +10,8 @@ from dotenv import load_dotenv
 from skill_loader import SkillLoader
 from storage import StorageRepository
 
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -25,8 +26,8 @@ class ZagrebAgent:
         if not api_key:
             raise RuntimeError("GEMINI_API_KEY not set in environment / .env")
 
-        genai.configure(api_key=api_key)
-        self.model = genai.GenerativeModel("gemini-2.5-flash")
+        self.client = genai.Client(api_key=api_key)
+        self.model_name = "gemini-2.5-flash"
 
         print("🏙️ Zagreb Buddy — Loading skills...")
         self.skills = SkillLoader(str(AGENT_DIR / "skills"))
@@ -36,11 +37,11 @@ class ZagrebAgent:
         self.sessions: dict[str, list[dict]] = defaultdict(list)
         self.repository = repository
 
+        print("🔍 Web search: enabled (Gemini Google Search grounding)")
         print("🚀 Zagreb Buddy ready!\n")
 
     @staticmethod
     def _anon_identity_for_session(session_id: str) -> tuple[str, str]:
-        # Deterministic anonymous identity to satisfy DB foreign keys.
         user_id = f"anon-{session_id}"
         email = f"anon+{session_id}@local.zagrebbuddy"
         return user_id, email
@@ -79,7 +80,6 @@ class ZagrebAgent:
         return history[-limit:]
 
     def _build_full_prompt(self, matched_skills: list, user_context: dict | None) -> str:
-        """Assemble the complete system prompt with dynamic context."""
         now = datetime.now()
 
         time_context = (
@@ -97,6 +97,12 @@ class ZagrebAgent:
         skill_context = self.skills.build_context_for_skills(matched_skills)
 
         full_prompt = f"""{self.base_system_prompt}
+
+## WEB SEARCH
+You have access to Google Search. When the user asks about current events,
+festivals, concerts, opening hours, weather, new venues, transport, prices,
+or anything needing up-to-date info — search the web automatically.
+Weave results naturally into your response like a local who just checked.
 
 ## YOUR AVAILABLE SKILLS
 {self.skills.get_skill_summaries()}
@@ -140,14 +146,45 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
 """
         return full_prompt
 
-    def _send_gemini(self, gemini_history: list, full_message: str) -> str:
-        """Synchronous Gemini call — run in executor to avoid blocking."""
-        chat = self.model.start_chat(history=gemini_history)
-        response = chat.send_message(full_message)
+    def _send_gemini(self, gemini_history: list, system_prompt: str, user_message: str) -> str:
+        """Synchronous Gemini call with Google Search grounding."""
+        contents = []
+        for msg in gemini_history:
+            contents.append(
+                types.Content(
+                    role=msg["role"],
+                    parts=[types.Part(text=msg["parts"][0])],
+                )
+            )
+
+        contents.append(
+            types.Content(
+                role="user",
+                parts=[types.Part(text=user_message)],
+            )
+        )
+
+        config = types.GenerateContentConfig(
+            system_instruction=system_prompt,
+            tools=[types.Tool(google_search=types.GoogleSearch())],
+        )
+
+        response = self.client.models.generate_content(
+            model=self.model_name,
+            contents=contents,
+            config=config,
+        )
+
+        if response.candidates and response.candidates[0].grounding_metadata:
+            queries = getattr(
+                response.candidates[0].grounding_metadata, "web_search_queries", []
+            )
+            if queries:
+                logger.info(f"Gemini searched the web: {queries}")
+
         return response.text.strip()
 
     def _parse_response(self, response_text: str) -> dict:
-        """Parse the LLM JSON response with fallback for malformed output."""
         try:
             text = response_text
             if text.startswith("```"):
@@ -178,7 +215,6 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
         return result
 
     async def chat(self, message: str, session_id: str, user_context: dict | None = None) -> dict:
-        """Process a user message and return agent response."""
         if not self.sessions.get(session_id):
             try:
                 self.sessions[session_id] = self._load_history_from_storage(session_id)
@@ -206,11 +242,9 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
             role = "user" if msg["role"] == "user" else "model"
             gemini_history.append({"role": role, "parts": [msg["content"]]})
 
-        full_message = f"System instructions:\n{system_prompt}\n\nUser message:\n{message}"
-
         loop = asyncio.get_event_loop()
         response_text = await loop.run_in_executor(
-            None, self._send_gemini, gemini_history, full_message
+            None, self._send_gemini, gemini_history, system_prompt, message
         )
 
         result = self._parse_response(response_text)

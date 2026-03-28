@@ -17,6 +17,7 @@ app = FastAPI(title="Zagreb Buddy Agent")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
+        "https://frontend-three-brown.vercel.app",
         "https://zagrebbuddy.vercel.app",
         "http://localhost:3000",
         "http://107.189.25.214:8080",

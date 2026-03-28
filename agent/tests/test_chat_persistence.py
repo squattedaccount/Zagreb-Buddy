@@ -4,29 +4,27 @@ import importlib
 import sqlite3
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
 
 
-class _FakeResponse:
-    def __init__(self, text: str) -> None:
-        self.text = text
+def _build_fake_client():
+    """Build a mock google.genai.Client that returns valid agent JSON."""
+    fake_response = MagicMock()
+    fake_response.text = (
+        '{"message":"Fake assistant reply","itinerary":null,'
+        '"follow_ups":[],"active_skills_used":[],"needs_more_info":false}'
+    )
+    fake_response.candidates = []
 
+    fake_models = MagicMock()
+    fake_models.generate_content.return_value = fake_response
 
-class _FakeChat:
-    def send_message(self, _message: str) -> _FakeResponse:
-        return _FakeResponse(
-            '{"message":"Fake assistant reply","itinerary":null,"follow_ups":[],"active_skills_used":[],"needs_more_info":false}'
-        )
-
-
-class _FakeModel:
-    def __init__(self, _model_name: str) -> None:
-        pass
-
-    def start_chat(self, history: list[dict] | None = None) -> _FakeChat:
-        return _FakeChat()
+    fake_client = MagicMock()
+    fake_client.models = fake_models
+    return fake_client
 
 
 @pytest.fixture()
@@ -40,14 +38,14 @@ def client_and_db(
     monkeypatch.setenv("GEMINI_API_KEY", "test-key")
     monkeypatch.setenv("ZAGREB_BUDDY_DB_PATH", str(db_path))
 
-    import google.generativeai as genai
+    import google.genai
 
-    monkeypatch.setattr(genai, "configure", lambda **_kwargs: None)
-    monkeypatch.setattr(genai, "GenerativeModel", _FakeModel)
+    monkeypatch.setattr(google.genai, "Client", lambda **_kwargs: _build_fake_client())
 
-    # Re-import app module for a fresh repository/agent per test.
     if "main" in sys.modules:
         del sys.modules["main"]
+    if "zagreb_agent" in sys.modules:
+        del sys.modules["zagreb_agent"]
     main_module = importlib.import_module("main")
     return TestClient(main_module.app), db_path
 
