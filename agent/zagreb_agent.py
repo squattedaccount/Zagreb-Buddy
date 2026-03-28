@@ -27,7 +27,12 @@ class ZagrebAgent:
             raise RuntimeError("GEMINI_API_KEY not set in environment / .env")
 
         self.client = genai.Client(api_key=api_key)
-        self.model_name = "gemini-2.5-flash"
+        self.model_chain = [
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-3.1-flash-lite-preview",
+        ]
+        self.active_model = self.model_chain[0]
 
         print("🏙️ Buddy — Loading skills...")
         self.skills = SkillLoader(str(AGENT_DIR / "skills"))
@@ -37,6 +42,7 @@ class ZagrebAgent:
         self.sessions: dict[str, list[dict]] = defaultdict(list)
         self.repository = repository
 
+        print(f"🤖 Model chain: {' → '.join(self.model_chain)}")
         print("🔍 Web search: enabled (Gemini Google Search grounding)")
         print("🚀 Buddy ready!\n")
 
@@ -146,8 +152,46 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
 """
         return full_prompt
 
+    def _call_model(self, model_name: str, contents: list, config: types.GenerateContentConfig) -> str:
+        """Call a single model and return response text, raising on any failure."""
+        response = self.client.models.generate_content(
+            model=model_name,
+            contents=contents,
+            config=config,
+        )
+
+        if response.candidates and response.candidates[0].grounding_metadata:
+            queries = getattr(
+                response.candidates[0].grounding_metadata, "web_search_queries", []
+            )
+            if queries:
+                logger.info(f"[{model_name}] Web search: {queries}")
+
+        if not response.candidates:
+            finish = getattr(response, "prompt_feedback", None)
+            raise RuntimeError(
+                f"No candidates (prompt may have been blocked). Feedback: {finish}"
+            )
+
+        candidate = response.candidates[0]
+        if candidate.finish_reason and candidate.finish_reason.name == "SAFETY":
+            raise RuntimeError(
+                f"Blocked by safety filters: {candidate.safety_ratings}"
+            )
+
+        text = response.text
+        if text is None:
+            parts_summary = [
+                getattr(p, "text", repr(p)) for p in (candidate.content.parts or [])
+            ]
+            raise RuntimeError(
+                f"None text. Finish reason: {candidate.finish_reason}, parts: {parts_summary}"
+            )
+
+        return text.strip()
+
     def _send_gemini(self, gemini_history: list, system_prompt: str, user_message: str) -> str:
-        """Synchronous Gemini call with Google Search grounding."""
+        """Try each model in the chain until one succeeds."""
         contents = []
         for msg in gemini_history:
             contents.append(
@@ -169,44 +213,21 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
             tools=[types.Tool(google_search=types.GoogleSearch())],
         )
 
-        response = self.client.models.generate_content(
-            model=self.model_name,
-            contents=contents,
-            config=config,
-        )
+        errors: list[tuple[str, Exception]] = []
 
-        if response.candidates and response.candidates[0].grounding_metadata:
-            queries = getattr(
-                response.candidates[0].grounding_metadata, "web_search_queries", []
-            )
-            if queries:
-                logger.info(f"Gemini searched the web: {queries}")
+        for model_name in self.model_chain:
+            try:
+                text = self._call_model(model_name, contents, config)
+                if model_name != self.active_model:
+                    logger.info(f"Model fallback: {self.active_model} → {model_name}")
+                    self.active_model = model_name
+                return text
+            except Exception as e:
+                logger.warning(f"[{model_name}] failed: {e}")
+                errors.append((model_name, e))
 
-        if not response.candidates:
-            finish = getattr(response, "prompt_feedback", None)
-            raise RuntimeError(
-                f"Gemini returned no candidates (prompt may have been blocked). "
-                f"Feedback: {finish}"
-            )
-
-        candidate = response.candidates[0]
-        if candidate.finish_reason and candidate.finish_reason.name == "SAFETY":
-            raise RuntimeError(
-                f"Gemini blocked the response due to safety filters: "
-                f"{candidate.safety_ratings}"
-            )
-
-        text = response.text
-        if text is None:
-            parts_summary = [
-                getattr(p, "text", repr(p)) for p in (candidate.content.parts or [])
-            ]
-            raise RuntimeError(
-                f"Gemini returned None text. Finish reason: {candidate.finish_reason}, "
-                f"parts: {parts_summary}"
-            )
-
-        return text.strip()
+        summary = "; ".join(f"{m}: {e}" for m, e in errors)
+        raise RuntimeError(f"All models exhausted. {summary}")
 
     @staticmethod
     def _extract_json(text: str) -> dict | None:

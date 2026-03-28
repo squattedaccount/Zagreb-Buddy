@@ -268,25 +268,25 @@ async def update_calendar_event(
 async def health():
     skills = agent.skills.list_skills()
 
-    gemini_ok = False
-    gemini_error = None
-    try:
-        test_resp = agent.client.models.generate_content(
-            model=agent.model_name,
-            contents="Reply with exactly: OK",
-            config=types.GenerateContentConfig(
-                max_output_tokens=10,
-            ),
-        )
-        gemini_ok = test_resp.text is not None
-    except Exception as e:
-        gemini_error = f"{type(e).__name__}: {e}"
+    model_status = {}
+    for model_name in agent.model_chain:
+        try:
+            test_resp = agent.client.models.generate_content(
+                model=model_name,
+                contents="Reply with exactly: OK",
+                config=types.GenerateContentConfig(
+                    max_output_tokens=10,
+                ),
+            )
+            model_status[model_name] = "ok" if test_resp.text else "empty_response"
+        except Exception as e:
+            model_status[model_name] = f"{type(e).__name__}: {e}"
 
     return {
         "status": "running",
         "skills_loaded": len(skills),
         "skill_names": skills,
-        "gemini_ok": gemini_ok,
-        "gemini_error": gemini_error,
-        "gemini_model": agent.model_name,
+        "active_model": agent.active_model,
+        "model_chain": agent.model_chain,
+        "model_status": model_status,
     }
