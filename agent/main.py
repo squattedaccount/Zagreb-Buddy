@@ -5,6 +5,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from storage import StorageRepository
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -26,6 +28,11 @@ class ChatRequest(BaseModel):
     message: str
     conversation_id: str | None = None
     user_context: dict | None = None
+
+
+class MessageRecord(BaseModel):
+    role: str
+    content: str
 
 
 class PlaceResponse(BaseModel):
@@ -58,7 +65,8 @@ class ChatResponse(BaseModel):
 
 from zagreb_agent import ZagrebAgent  # noqa: E402
 
-agent = ZagrebAgent()
+repository = StorageRepository()
+agent = ZagrebAgent(repository=repository)
 
 
 @app.post("/chat", response_model=ChatResponse)
@@ -76,6 +84,18 @@ async def chat(req: ChatRequest):
         raise HTTPException(status_code=500, detail="Agent failed to process message")
 
     return ChatResponse(conversation_id=conversation_id, **result)
+
+
+@app.get("/chat/{conversation_id}/history", response_model=list[MessageRecord])
+async def chat_history(conversation_id: str, limit: int = 100):
+    if limit < 1 or limit > 500:
+        raise HTTPException(status_code=400, detail="limit must be between 1 and 500")
+
+    try:
+        return agent.get_history(conversation_id, limit=limit)
+    except Exception as e:
+        logger.error(f"Failed to load chat history: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to load chat history")
 
 
 @app.get("/health")
