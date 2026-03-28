@@ -182,7 +182,31 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
             if queries:
                 logger.info(f"Gemini searched the web: {queries}")
 
-        return response.text.strip()
+        if not response.candidates:
+            finish = getattr(response, "prompt_feedback", None)
+            raise RuntimeError(
+                f"Gemini returned no candidates (prompt may have been blocked). "
+                f"Feedback: {finish}"
+            )
+
+        candidate = response.candidates[0]
+        if candidate.finish_reason and candidate.finish_reason.name == "SAFETY":
+            raise RuntimeError(
+                f"Gemini blocked the response due to safety filters: "
+                f"{candidate.safety_ratings}"
+            )
+
+        text = response.text
+        if text is None:
+            parts_summary = [
+                getattr(p, "text", repr(p)) for p in (candidate.content.parts or [])
+            ]
+            raise RuntimeError(
+                f"Gemini returned None text. Finish reason: {candidate.finish_reason}, "
+                f"parts: {parts_summary}"
+            )
+
+        return text.strip()
 
     @staticmethod
     def _extract_json(text: str) -> dict | None:

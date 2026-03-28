@@ -6,6 +6,7 @@ from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
+from google.genai import types
 from google_integration import GoogleIntegrationService
 from storage import StorageRepository
 
@@ -135,7 +136,10 @@ async def chat(req: ChatRequest):
         )
     except Exception as e:
         logger.error(f"Agent error: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail="Agent failed to process message")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {type(e).__name__}: {e}",
+        )
 
     return ChatResponse(conversation_id=conversation_id, **result)
 
@@ -263,8 +267,26 @@ async def update_calendar_event(
 @app.get("/health")
 async def health():
     skills = agent.skills.list_skills()
+
+    gemini_ok = False
+    gemini_error = None
+    try:
+        test_resp = agent.client.models.generate_content(
+            model=agent.model_name,
+            contents="Reply with exactly: OK",
+            config=types.GenerateContentConfig(
+                max_output_tokens=10,
+            ),
+        )
+        gemini_ok = test_resp.text is not None
+    except Exception as e:
+        gemini_error = f"{type(e).__name__}: {e}"
+
     return {
         "status": "running",
         "skills_loaded": len(skills),
         "skill_names": skills,
+        "gemini_ok": gemini_ok,
+        "gemini_error": gemini_error,
+        "gemini_model": agent.model_name,
     }
