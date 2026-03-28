@@ -31,9 +31,11 @@ export function MessageBubble({ message, onFollowUp }: MessageBubbleProps) {
     <div className={`flex flex-col ${isUser ? 'items-end' : 'items-start'} gap-1 animate-in fade-in slide-in-from-bottom-2 duration-300`}>
       <div className={`flex items-start gap-3 max-w-[85%] ${isUser ? 'flex-row-reverse' : ''}`}>
         {!isUser && (
-          <div className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-sm flex-shrink-0">
-            🏙️
-          </div>
+          <img
+            src="/buddy-logo.png"
+            alt="Buddy"
+            className="w-8 h-8 rounded-full flex-shrink-0 object-cover"
+          />
         )}
         <div
           className={`rounded-2xl px-4 py-3 ${

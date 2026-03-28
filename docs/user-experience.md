@@ -5,7 +5,7 @@ USER OPENS APP
 │
 ▼
 ┌──────────────────────────────────────┐
-│  Welcome message from Zagreb Buddy   │
+│  Welcome message from Buddy          │
 │  + mood selector pills               │
 │  ☕Chill  🎨Culture  🍺Night  🤫Hidden │
 └──────────────┬───────────────────────┘

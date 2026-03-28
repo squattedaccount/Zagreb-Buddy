@@ -30,7 +30,7 @@ export default function Home() {
     id: 'welcome',
     role: 'assistant',
     content:
-      "Bok! 👋 I'm your Zagreb Buddy — think of me as a local friend who knows all the best hidden spots. What are you in the mood for today?",
+      "Bok! 👋 I'm your Buddy — think of me as a local friend who knows all the best hidden spots. What are you in the mood for today?",
     follow_ups: [
       'I have 2 hours to explore',
       'Show me hidden gems near the center',
@@ -92,9 +92,9 @@ export default function Home() {
   return (
     <div className="h-[100dvh] flex flex-col bg-slate-950 text-white">
       <header className="flex-shrink-0 px-4 py-3 border-b border-slate-800 flex items-center gap-3 bg-slate-900/95 backdrop-blur-sm">
-        <span className="text-2xl">🏙️</span>
+        <img src="/buddy-logo.png" alt="Buddy" className="w-9 h-9 rounded-full object-cover" />
         <div className="flex-1">
-          <h1 className="font-bold text-lg leading-tight">Zagreb Buddy</h1>
+          <h1 className="font-bold text-lg leading-tight">Buddy</h1>
           <p className="text-xs text-slate-400">Your AI local friend</p>
         </div>
         <div className="flex items-center gap-2">

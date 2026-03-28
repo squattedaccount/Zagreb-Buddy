@@ -2,13 +2,13 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Zagreb Buddy — Your AI Local Friend',
+  title: 'Buddy — Your AI Local Friend',
   description: 'Discover the real Zagreb with your AI local companion',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Zagreb Buddy',
+    title: 'Buddy',
   },
 };
 

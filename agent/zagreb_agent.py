@@ -29,7 +29,7 @@ class ZagrebAgent:
         self.client = genai.Client(api_key=api_key)
         self.model_name = "gemini-2.5-flash"
 
-        print("🏙️ Zagreb Buddy — Loading skills...")
+        print("🏙️ Buddy — Loading skills...")
         self.skills = SkillLoader(str(AGENT_DIR / "skills"))
 
         self.base_system_prompt = (AGENT_DIR / "system_prompt.md").read_text()
@@ -38,7 +38,7 @@ class ZagrebAgent:
         self.repository = repository
 
         print("🔍 Web search: enabled (Gemini Google Search grounding)")
-        print("🚀 Zagreb Buddy ready!\n")
+        print("🚀 Buddy ready!\n")
 
     @staticmethod
     def _anon_identity_for_session(session_id: str) -> tuple[str, str]:

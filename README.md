@@ -1,8 +1,64 @@
-# Zagreb Buddy
+# Buddy
 
-**One-liner:** *Like having a local best friend in Zagreb who always knows the perfect spot.*
+**Like having a local best friend who always knows the perfect spot.**
 
-An AI-powered local companion that helps tourists and locals discover the real Zagreb — hidden gems, local events, street art, secret courtyards, and authentic experiences that never appear on tourist maps.
+An AI-powered local companion that helps both tourists and locals discover the real Zagreb — hidden gems, street art, secret courtyards, and authentic experiences that never appear on tourist maps.
+
+## Google Technologies Used
+
+- **Gemini 2.5 Flash** — powers all AI conversations via `google-genai` SDK
+- **Google Search grounding** — real-time web data in every response
+- **Google OAuth 2.0** — secure user authentication
+- **Google Calendar API** — save itineraries as calendar events
+- **Google Maps** — walking direction URLs from itinerary places
+
+## How It Works
+
+```
+Mobile Browser → Next.js 16 (Vercel) → FastAPI (VPS) → Gemini 2.5 Flash
+                                             ↕              ↕
+                                        Skills System   Google Search
+                                        SQLite           grounding
+                                        Google OAuth
+                                        Calendar API
+                                        Maps URLs
+```
+
+1. User chats with the AI agent in natural language
+2. The agent matches relevant **skills** (street art, coffee, architecture, bars, courtyards, markets)
+3. **Gemini 2.5 Flash** generates a personalized response with optional walking itinerary
+4. Places appear on an **interactive map** with local stories and tips
+5. Users can open the route in **Google Maps** or save it to **Google Calendar**
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | Next.js 16 (App Router), React 19, Tailwind CSS 4 |
+| Map | Leaflet + react-leaflet |
+| Backend | FastAPI, Python 3.12 |
+| AI | Gemini 2.5 Flash + Google Search grounding |
+| Integrations | Google OAuth 2.0, Calendar API, Maps |
+| Database | SQLite |
+| Hosting | Vercel (frontend) + VPS (backend) |
+
+## Key Numbers
+
+- **6** specialized skill domains
+- **38** curated hidden gems with local stories
+- **5** Google technologies integrated
+
+## Repository Layout
+
+```
+buddy/
+├── frontend/        # Next.js app (Vercel)
+├── agent/           # FastAPI + ZagrebAgent + skills
+│   ├── skills/      # 6 knowledge domains (38 places)
+│   ├── storage/     # SQLite persistence
+│   └── main.py      # FastAPI server
+└── docs/            # Documentation & presentation
+```
 
 ## Documentation
 
@@ -10,32 +66,31 @@ An AI-powered local companion that helps tourists and locals discover the real Z
 |-----|-------------|
 | [Overview](docs/overview.md) | Problem, solution, value proposition |
 | [Architecture](docs/architecture.md) | System diagram, tech stack |
-| [Project structure](docs/project-structure.md) | File tree, repo layout |
-| [Backend](docs/backend.md) | FastAPI, agent, skill loader |
-| [Skills](docs/skills.md) | `skill.json`, `places.json`, `knowledge.md`, build priorities |
-| [Frontend](docs/frontend.md) | Next.js, API proxy, types, main UI |
-| [User experience](docs/user-experience.md) | Flow from open app to follow-ups |
-| [Build plan](docs/build-plan.md) | 5-hour hackathon split |
-| [Demo scenarios](docs/demo-scenarios.md) | Tourist, rainy day, local |
-| [Future vision](docs/future-vision.md) | MVP → next → long-term |
-| [Environment & deployment](docs/environment-and-deployment.md) | Env vars, Vercel/VPS checklist |
-| [Presentation outline](docs/PRESENTATION.md) | Pitch deck / meetup slides |
+| [Presentation](docs/PRESENTATION.md) | Hackathon pitch deck (3-4 min) |
+| [Hackathon Answers](docs/hackathon-answers.md) | Google Prize, problem, solution |
+| [Skills](docs/skills.md) | Skill schema, places schema, priorities |
+| [Google Integrations](docs/google-integrations.md) | OAuth, Calendar, Maps API docs |
+| [Demo Scenarios](docs/demo-scenarios.md) | Tourist, rainy day, local |
+| [Future Vision](docs/future-vision.md) | MVP → next → long-term roadmap |
 
-Full index: [docs/INDEX.md](docs/INDEX.md)
+## Quick Start
 
-## Quick links
-
-- **GitHub (private):** [github.com/squattedaccount/Zagreb-Buddy](https://github.com/squattedaccount/Zagreb-Buddy)
-
-If you intended the repo under another user or org (for example `4xon`), either transfer this repository in GitHub **Settings → General → Transfer ownership**, or connect that GitHub account to Cursor and recreate the remote there.
-
-## Repository layout (target)
-
-```
-zagreb-buddy/
-├── frontend/     # Next.js app
-├── agent/        # FastAPI + ZeroClaw + skills
-└── docs/         # This documentation
+**Backend:**
+```bash
+cd agent
+cp .env.example .env   # add your GEMINI_API_KEY
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8080
 ```
 
-Application source code can live in this repo alongside these docs; the structure above matches the project specification.
+**Frontend:**
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## Links
+
+- **Live:** [zagrebbuddy.vercel.app](https://zagrebbuddy.vercel.app)
+- **GitHub:** [github.com/squattedaccount/Zagreb-Buddy](https://github.com/squattedaccount/Zagreb-Buddy)

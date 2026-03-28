@@ -12,7 +12,7 @@ from storage import StorageRepository
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Zagreb Buddy Agent")
+app = FastAPI(title="Buddy Agent")
 
 app.add_middleware(
     CORSMiddleware,

@@ -2,11 +2,12 @@
 
 ## Now (hackathon MVP)
 
-- Chat-based AI local friend
+- Chat-based AI local friend for tourists AND locals
 - Six specialized skills
-- 30+ curated places
+- 38 curated hidden gems
 - Map visualization
-- Mobile-friendly PWA
+- Google Calendar + Maps integration
+- Mobile-friendly web app
 
 ## Next (post-hackathon)
 

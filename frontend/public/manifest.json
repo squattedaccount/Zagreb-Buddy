@@ -1,6 +1,6 @@
 {
-  "name": "Zagreb Buddy",
-  "short_name": "ZgBuddy",
+  "name": "Buddy",
+  "short_name": "Buddy",
   "description": "Your AI local friend for discovering the real Zagreb",
   "start_url": "/",
   "display": "standalone",
