@@ -11,4 +11,5 @@
 9. [Demo scenarios](demo-scenarios.md) — three demo scripts
 10. [Future vision](future-vision.md) — roadmap
 11. [Environment & deployment](environment-and-deployment.md) — `.env`, Vercel, VPS
-12. [Presentation outline](PRESENTATION.md) — slides / pitch
+12. [ZeroClaw setup](zeroclaw-setup.md) — ZeroClaw gateway, VPS deployment
+13. [Presentation outline](PRESENTATION.md) — slides / pitch

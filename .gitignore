@@ -10,16 +10,28 @@ __pycache__/
 .env.local
 .env.*.local
 *.pem
+agent/.env
+frontend/.env.local
 
 # Next.js
 frontend/.next/
 frontend/out/
 
+# Python
+*.egg-info/
+dist/
+build/
+
 # OS / IDE
 .DS_Store
 .idea/
 .vscode/
+*.swp
+*.swo
 
 # Logs
 *.log
 npm-debug.log*
+
+# Google Cloud credentials
+*service-account*.json

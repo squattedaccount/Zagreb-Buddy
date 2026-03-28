@@ -1,8 +1,12 @@
-from fastapi import FastAPI
+import logging
+import uuid
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from zagreb_agent import ZagrebAgent
-import uuid
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Zagreb Buddy Agent")
 
@@ -15,8 +19,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-agent = ZagrebAgent()
 
 
 class ChatRequest(BaseModel):
@@ -53,20 +55,26 @@ class ChatResponse(BaseModel):
     needs_more_info: bool = False
 
 
+from zagreb_agent import ZagrebAgent  # noqa: E402
+
+agent = ZagrebAgent()
+
+
 @app.post("/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     conversation_id = req.conversation_id or str(uuid.uuid4())
 
-    result = await agent.chat(
-        message=req.message,
-        session_id=conversation_id,
-        user_context=req.user_context,
-    )
+    try:
+        result = await agent.chat(
+            message=req.message,
+            session_id=conversation_id,
+            user_context=req.user_context,
+        )
+    except Exception as e:
+        logger.error(f"Agent error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Agent failed to process message")
 
-    return ChatResponse(
-        conversation_id=conversation_id,
-        **result,
-    )
+    return ChatResponse(conversation_id=conversation_id, **result)
 
 
 @app.get("/health")

@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { Place } from '@/lib/types';
-import { MapPin, Clock, ChevronDown, ChevronUp } from 'lucide-react';
+import { MapPin, Clock, ChevronDown, ChevronUp, Navigation } from 'lucide-react';
 
 const CATEGORY_COLORS: Record<string, string> = {
   cafe: 'bg-amber-500/20 text-amber-400',
@@ -22,6 +22,8 @@ interface PlaceCardProps {
 export function PlaceCard({ place, index }: PlaceCardProps) {
   const [expanded, setExpanded] = useState(false);
   const colorClass = CATEGORY_COLORS[place.category] || 'bg-slate-500/20 text-slate-400';
+
+  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${place.lat},${place.lng}&query_place_id=${encodeURIComponent(place.name)}`;
 
   return (
     <div
@@ -49,13 +51,25 @@ export function PlaceCard({ place, index }: PlaceCardProps) {
       {expanded && (
         <div className="px-3 pb-3 pt-0 space-y-2 border-t border-slate-700/50">
           <p className="text-xs text-slate-300 mt-2">{place.why_recommended}</p>
-          <div className="flex items-center gap-1 text-xs text-emerald-400">
-            <MapPin size={12} />
+          <div className="flex items-start gap-1 text-xs text-emerald-400">
+            <MapPin size={12} className="mt-0.5 flex-shrink-0" />
             <span>{place.practical_tip}</span>
           </div>
-          <div className="flex items-center gap-1 text-xs text-slate-500">
-            <Clock size={12} />
-            <span>{place.visit_duration_min} min</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1 text-xs text-slate-500">
+              <Clock size={12} />
+              <span>{place.visit_duration_min} min</span>
+            </div>
+            <a
+              href={mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="flex items-center gap-1 text-xs text-sky-400 hover:text-sky-300 transition-colors px-2 py-1 rounded-md hover:bg-sky-500/10"
+            >
+              <Navigation size={12} />
+              <span>Open in Maps</span>
+            </a>
           </div>
         </div>
       )}

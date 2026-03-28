@@ -1,12 +1,21 @@
 import json
+import asyncio
+import logging
 from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 
+from dotenv import load_dotenv
 from skill_loader import SkillLoader
 
 import vertexai
 from vertexai.generative_models import GenerativeModel
+
+load_dotenv()
+
+logger = logging.getLogger(__name__)
+
+AGENT_DIR = Path(__file__).resolve().parent
 
 
 class ZagrebAgent:
@@ -15,9 +24,9 @@ class ZagrebAgent:
         self.model = GenerativeModel("gemini-2.0-flash")
 
         print("🏙️ Zagreb Buddy — Loading skills...")
-        self.skills = SkillLoader("skills")
+        self.skills = SkillLoader(str(AGENT_DIR / "skills"))
 
-        self.base_system_prompt = Path("system_prompt.md").read_text()
+        self.base_system_prompt = (AGENT_DIR / "system_prompt.md").read_text()
 
         self.sessions: dict[str, list[dict]] = defaultdict(list)
 
@@ -85,6 +94,43 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
 """
         return full_prompt
 
+    def _send_gemini(self, gemini_history: list, full_message: str) -> str:
+        """Synchronous Gemini call — run in executor to avoid blocking."""
+        chat = self.model.start_chat(history=gemini_history)
+        response = chat.send_message(full_message)
+        return response.text.strip()
+
+    def _parse_response(self, response_text: str) -> dict:
+        """Parse the LLM JSON response with fallback for malformed output."""
+        try:
+            text = response_text
+            if text.startswith("```"):
+                text = text.split("\n", 1)[1].rsplit("```", 1)[0]
+            result = json.loads(text)
+        except (json.JSONDecodeError, IndexError):
+            logger.warning("LLM returned non-JSON response, using fallback")
+            result = {
+                "message": response_text,
+                "itinerary": None,
+                "follow_ups": [],
+                "active_skills": [],
+                "needs_more_info": False,
+            }
+
+        if "active_skills_used" in result:
+            result["active_skills"] = result.pop("active_skills_used")
+
+        ALLOWED_KEYS = {"message", "itinerary", "follow_ups", "active_skills", "needs_more_info"}
+        result = {k: v for k, v in result.items() if k in ALLOWED_KEYS}
+
+        result.setdefault("message", "")
+        result.setdefault("itinerary", None)
+        result.setdefault("follow_ups", [])
+        result.setdefault("active_skills", [])
+        result.setdefault("needs_more_info", False)
+
+        return result
+
     async def chat(self, message: str, session_id: str, user_context: dict | None = None) -> dict:
         """Process a user message and return agent response."""
         history = self.sessions[session_id]
@@ -103,29 +149,14 @@ IMPORTANT: Return ONLY the JSON object. No markdown code blocks. No extra text.
             role = "user" if msg["role"] == "user" else "model"
             gemini_history.append({"role": role, "parts": [msg["content"]]})
 
-        chat = self.model.start_chat(history=gemini_history)
-
         full_message = f"System instructions:\n{system_prompt}\n\nUser message:\n{message}"
 
-        response = chat.send_message(full_message)
-        response_text = response.text.strip()
+        loop = asyncio.get_event_loop()
+        response_text = await loop.run_in_executor(
+            None, self._send_gemini, gemini_history, full_message
+        )
 
-        try:
-            if response_text.startswith("```"):
-                response_text = response_text.split("\n", 1)[1].rsplit("```", 1)[0]
-            result = json.loads(response_text)
-        except json.JSONDecodeError:
-            result = {
-                "message": response_text,
-                "itinerary": None,
-                "follow_ups": [],
-                "active_skills_used": [],
-                "needs_more_info": False,
-            }
-
-        # Normalize key name for the API response
-        if "active_skills_used" in result:
-            result["active_skills"] = result.pop("active_skills_used")
+        result = self._parse_response(response_text)
 
         history.append({"role": "user", "content": message})
         history.append({"role": "assistant", "content": result.get("message", "")})
