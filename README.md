@@ -25,7 +25,9 @@ Full index: [docs/INDEX.md](docs/INDEX.md)
 
 ## Quick links
 
-- **GitHub:** [github.com/4xon/Zagreb-Buddy](https://github.com/4xon/Zagreb-Buddy)
+- **GitHub (private):** [github.com/squattedaccount/Zagreb-Buddy](https://github.com/squattedaccount/Zagreb-Buddy)
+
+If you intended the repo under another user or org (for example `4xon`), either transfer this repository in GitHub **Settings → General → Transfer ownership**, or connect that GitHub account to Cursor and recreate the remote there.
 
 ## Repository layout (target)
 

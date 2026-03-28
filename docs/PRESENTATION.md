@@ -11,7 +11,7 @@ Use this as a starting structure for meetup or hackathon slides. Adjust slide co
 5. **How it works** — Next.js → VPS → Gemini; skills as JSON + markdown  
 6. **Why us / why now** — PWA, local data, personality vs generic search  
 7. **Roadmap** — see [future-vision.md](future-vision.md) (MVP → next → vision)  
-8. **Thank you / repo / Q&A** — [github.com/4xon/Zagreb-Buddy](https://github.com/4xon/Zagreb-Buddy)
+8. **Thank you / repo / Q&A** — [github.com/squattedaccount/Zagreb-Buddy](https://github.com/squattedaccount/Zagreb-Buddy)
 
 ## Demo scripts
 
