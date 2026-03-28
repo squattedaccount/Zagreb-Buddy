@@ -1,4 +1,5 @@
 import json
+import os
 import asyncio
 import logging
 from pathlib import Path
@@ -8,8 +9,7 @@ from collections import defaultdict
 from dotenv import load_dotenv
 from skill_loader import SkillLoader
 
-import vertexai
-from vertexai.generative_models import GenerativeModel
+import google.generativeai as genai
 
 load_dotenv()
 
@@ -20,8 +20,12 @@ AGENT_DIR = Path(__file__).resolve().parent
 
 class ZagrebAgent:
     def __init__(self):
-        vertexai.init()
-        self.model = GenerativeModel("gemini-2.0-flash")
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            raise RuntimeError("GEMINI_API_KEY not set in environment / .env")
+
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
 
         print("🏙️ Zagreb Buddy — Loading skills...")
         self.skills = SkillLoader(str(AGENT_DIR / "skills"))

@@ -15,6 +15,7 @@ app.add_middleware(
     allow_origins=[
         "https://zagrebbuddy.vercel.app",
         "http://localhost:3000",
+        "http://107.189.25.214:8080",
     ],
     allow_methods=["*"],
     allow_headers=["*"],
