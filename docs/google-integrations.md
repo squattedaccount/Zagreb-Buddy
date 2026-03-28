@@ -9,7 +9,7 @@ Set these in `agent/.env` (or deployment env):
 ```env
 GOOGLE_CLIENT_ID=your-google-oauth-client-id
 GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
-GOOGLE_OAUTH_REDIRECT_URI=https://your-backend-domain/integrations/google/callback
+GOOGLE_OAUTH_REDIRECT_URI=https://your-frontend-domain/google/callback
 # Optional override:
 # GOOGLE_OAUTH_SCOPES=https://www.googleapis.com/auth/calendar,https://www.googleapis.com/auth/calendar.events
 ```
@@ -149,7 +149,7 @@ Response shape is same as create endpoint.
 
 1. User clicks “Connect Google”.
 2. Frontend calls `GET /integrations/google/connect` and redirects to returned URL.
-3. Google redirects back to your frontend with `code`.
+3. Google redirects back to frontend route `/google/callback` with `code`.
 4. Frontend posts `code` to backend callback endpoint.
 5. When itinerary exists, frontend calls maps route endpoint and shows “Open in Google Maps”.
 6. User confirms plan -> frontend calls create calendar event endpoint.
