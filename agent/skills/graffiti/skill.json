@@ -1,0 +1,13 @@
+{
+  "id": "graffiti",
+  "name": "Street Art & Graffiti",
+  "icon": "🎨",
+  "color": "#FF6B35",
+  "description": "Zagreb's vibrant street art scene — murals, stencils, and underground galleries",
+  "triggers": ["street art", "graffiti", "mural", "murals", "urban art", "spray paint", "stencil", "tags", "art walk", "gallery", "contemporary art", "art scene", "artwork", "wall art"],
+  "vibes": ["artsy", "underground", "alternative", "creative", "adventurous", "edgy", "culture"],
+  "weather_dependent": true,
+  "best_time_of_day": ["morning", "afternoon"],
+  "typical_visit_duration_min": 90,
+  "combines_well_with": ["coffee_culture", "local_bars"]
+}

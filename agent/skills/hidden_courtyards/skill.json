@@ -1,0 +1,13 @@
+{
+  "id": "hidden_courtyards",
+  "name": "Hidden Courtyards & Passages",
+  "icon": "🚪",
+  "color": "#2ECC71",
+  "description": "Zagreb's secret courtyards, hidden passages, and tucked-away gardens that most people walk right past",
+  "triggers": ["courtyard", "courtyards", "hidden", "secret", "passage", "passages", "garden", "gardens", "tucked away", "off the beaten path", "surprise me", "unknown", "undiscovered"],
+  "vibes": ["hidden", "romantic", "adventurous", "quirky", "underground", "mysterious", "peaceful"],
+  "weather_dependent": true,
+  "best_time_of_day": ["morning", "afternoon"],
+  "typical_visit_duration_min": 75,
+  "combines_well_with": ["architecture", "coffee_culture"]
+}

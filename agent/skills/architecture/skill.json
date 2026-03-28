@@ -1,0 +1,13 @@
+{
+  "id": "architecture",
+  "name": "Architecture & Design",
+  "icon": "🏛️",
+  "color": "#4A90D9",
+  "description": "Zagreb's stunning architectural heritage — Secession, Art Nouveau, Brutalism, and hidden facades",
+  "triggers": ["architecture", "building", "buildings", "facade", "art nouveau", "secession", "brutalist", "design", "historic", "heritage", "church", "cathedral", "theater", "monument"],
+  "vibes": ["culture", "history", "artsy", "romantic", "intellectual", "photography"],
+  "weather_dependent": true,
+  "best_time_of_day": ["morning", "afternoon"],
+  "typical_visit_duration_min": 120,
+  "combines_well_with": ["coffee_culture", "hidden_courtyards"]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "coffee_culture",
+  "name": "Coffee Culture",
+  "icon": "☕",
+  "color": "#8B4513",
+  "description": "Zagreb's legendary coffee scene — from špica ritual to third-wave roasters",
+  "triggers": ["coffee", "café", "cafe", "kava", "espresso", "cappuccino", "latte", "brew", "roast", "beans", "specialty coffee", "turska kava", "morning coffee"],
+  "vibes": ["chill", "romantic", "cozy", "social", "morning", "relaxed", "hipster"],
+  "weather_dependent": false,
+  "best_time_of_day": ["morning", "afternoon"],
+  "typical_visit_duration_min": 60,
+  "combines_well_with": ["graffiti", "architecture", "hidden_courtyards"]
+}

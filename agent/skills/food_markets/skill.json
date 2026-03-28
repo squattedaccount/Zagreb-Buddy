@@ -1,0 +1,13 @@
+{
+  "id": "food_markets",
+  "name": "Food & Markets",
+  "icon": "🥐",
+  "color": "#E74C3C",
+  "description": "Zagreb's markets, bakeries, street food, and the best local bites — from Dolac to neighborhood gems",
+  "triggers": ["food", "eat", "eating", "hungry", "restaurant", "market", "markets", "bakery", "burek", "ćevapi", "street food", "dolac", "lunch", "breakfast", "brunch", "štrukli", "local food", "traditional food", "croatian food"],
+  "vibes": ["foodie", "adventurous", "social", "family", "morning", "chill", "authentic"],
+  "weather_dependent": false,
+  "best_time_of_day": ["morning", "afternoon"],
+  "typical_visit_duration_min": 90,
+  "combines_well_with": ["coffee_culture", "local_bars", "hidden_courtyards"]
+}

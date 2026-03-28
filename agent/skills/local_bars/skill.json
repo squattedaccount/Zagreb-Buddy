@@ -1,0 +1,13 @@
+{
+  "id": "local_bars",
+  "name": "Local Bars & Nightlife",
+  "icon": "🍺",
+  "color": "#FFD700",
+  "description": "Zagreb's best bars, craft beer spots, wine bars, and nightlife — from divey to divine",
+  "triggers": ["bar", "bars", "pub", "pubs", "beer", "craft beer", "wine", "cocktail", "cocktails", "nightlife", "drink", "drinks", "going out", "night out", "party", "rakija", "gemišt"],
+  "vibes": ["nightlife", "social", "adventurous", "underground", "chill", "romantic", "fun"],
+  "weather_dependent": false,
+  "best_time_of_day": ["evening", "night"],
+  "typical_visit_duration_min": 120,
+  "combines_well_with": ["food_markets", "graffiti"]
+}
