@@ -330,3 +330,66 @@ class StorageRepository:
                 """,
                 (status, reviewer_note, contribution_id),
             )
+
+    def upsert_google_integration(
+        self,
+        *,
+        user_id: str,
+        access_token: str,
+        refresh_token: str | None,
+        token_uri: str,
+        scopes: list[str],
+        expiry: str | None = None,
+        google_email: str | None = None,
+        client_id: str | None = None,
+    ) -> None:
+        with self._connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO google_integrations (
+                    user_id,
+                    google_email,
+                    access_token,
+                    refresh_token,
+                    token_uri,
+                    client_id,
+                    scopes_json,
+                    expiry,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+                ON CONFLICT(user_id) DO UPDATE SET
+                    google_email = excluded.google_email,
+                    access_token = excluded.access_token,
+                    refresh_token = COALESCE(excluded.refresh_token, google_integrations.refresh_token),
+                    token_uri = excluded.token_uri,
+                    client_id = excluded.client_id,
+                    scopes_json = excluded.scopes_json,
+                    expiry = excluded.expiry,
+                    updated_at = datetime('now')
+                """,
+                (
+                    user_id,
+                    google_email,
+                    access_token,
+                    refresh_token,
+                    token_uri,
+                    client_id,
+                    json.dumps(scopes),
+                    expiry,
+                ),
+            )
+
+    def get_google_integration(self, user_id: str) -> dict[str, Any] | None:
+        with self._connect() as conn:
+            row = conn.execute(
+                "SELECT * FROM google_integrations WHERE user_id = ?",
+                (user_id,),
+            ).fetchone()
+
+        if not row:
+            return None
+
+        payload = dict(row)
+        payload["scopes"] = json.loads(payload.pop("scopes_json") or "[]")
+        return payload

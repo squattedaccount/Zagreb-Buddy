@@ -110,3 +110,88 @@ def test_chat_writes_to_database(client_and_db: tuple[TestClient, Path]) -> None
     assert users_count == 1
     assert sessions_count == 1
     assert messages_count == 2
+
+
+def test_google_maps_route_requires_header(client_and_db: tuple[TestClient, Path]) -> None:
+    client, _db_path = client_and_db
+    response = client.post(
+        "/integrations/google/maps/route",
+        json={
+            "places": [
+                {
+                    "id": "a",
+                    "name": "Start",
+                    "lat": 45.81,
+                    "lng": 15.98,
+                    "one_liner": "start",
+                    "why_recommended": "test",
+                    "practical_tip": "test",
+                    "visit_duration_min": 20,
+                    "category": "cafe",
+                },
+                {
+                    "id": "b",
+                    "name": "End",
+                    "lat": 45.82,
+                    "lng": 15.99,
+                    "one_liner": "end",
+                    "why_recommended": "test",
+                    "practical_tip": "test",
+                    "visit_duration_min": 20,
+                    "category": "bar",
+                },
+            ]
+        },
+    )
+    assert response.status_code == 400
+    assert "X-User-ID" in response.json()["detail"]
+
+
+def test_google_maps_route_builds_directions_url(client_and_db: tuple[TestClient, Path]) -> None:
+    client, _db_path = client_and_db
+    response = client.post(
+        "/integrations/google/maps/route",
+        headers={"X-User-ID": "user-1"},
+        json={
+            "places": [
+                {
+                    "id": "a",
+                    "name": "Start",
+                    "lat": 45.8100,
+                    "lng": 15.9800,
+                    "one_liner": "start",
+                    "why_recommended": "test",
+                    "practical_tip": "test",
+                    "visit_duration_min": 20,
+                    "category": "cafe",
+                },
+                {
+                    "id": "mid",
+                    "name": "Mid",
+                    "lat": 45.8150,
+                    "lng": 15.9850,
+                    "one_liner": "mid",
+                    "why_recommended": "test",
+                    "practical_tip": "test",
+                    "visit_duration_min": 20,
+                    "category": "market",
+                },
+                {
+                    "id": "b",
+                    "name": "End",
+                    "lat": 45.8200,
+                    "lng": 15.9900,
+                    "one_liner": "end",
+                    "why_recommended": "test",
+                    "practical_tip": "test",
+                    "visit_duration_min": 20,
+                    "category": "bar",
+                },
+            ]
+        },
+    )
+    assert response.status_code == 200, response.text
+    url = response.json()["maps_directions_url"]
+    assert "google.com/maps/dir" in url
+    assert "origin=" in url
+    assert "destination=" in url
